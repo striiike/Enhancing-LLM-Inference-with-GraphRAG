@@ -1,0 +1,392 @@
+[
+  {
+    "question": "Who won the Nobel Prize in Physics?",
+    "query": "MATCH (s:Scholar)-[:WON]->(p:Prize {category: 'physics'}) RETURN s.knownName",
+    "explanation": "Basic prize category filtering with WON relationship"
+  },
+  {
+    "question": "List all Nobel laureates born in New York",
+    "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City {name: 'New York, NY'}) RETURN s.knownName",
+    "explanation": "BORN_IN relationship with city filtering"
+  },
+  {
+    "question": "Find scholars affiliated with MIT",
+    "query": "MATCH (s:Scholar)-[:AFFILIATED_WITH]->(i:Institution {name: 'Massachusetts Institute of Technology (MIT)'}) RETURN s.knownName",
+    "explanation": "AFFILIATED_WITH relationship usage"
+  },
+  {
+    "question": "How many Nobel prizes were awarded in Chemistry?",
+    "query": "MATCH (p:Prize {category: 'chemistry'}) RETURN count(p)",
+    "explanation": "Count aggregation on Prize nodes"
+  },
+  {
+    "question": "Who won Nobel prizes in 2020?",
+    "query": "MATCH (s:Scholar)-[:WON]->(p:Prize {awardYear: 2020}) RETURN s.knownName, p.category",
+    "explanation": "Filtering by year with multiple properties returned"
+  },
+  {
+    "question": "List all scholars born in the USA",
+    "query": "MATCH (s:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(co:Country {name: 'USA'}) RETURN s.knownName",
+    "explanation": "Two-hop path through City to Country using IS_CITY_IN"
+  },
+  {
+    "question": "Find institutions located in Cambridge",
+    "query": "MATCH (i:Institution)-[:IS_LOCATED_IN]->(c:City {name: 'Cambridge, MA'}) RETURN i.name",
+    "explanation": "IS_LOCATED_IN relationship for institutions"
+  },
+  {
+    "question": "How many male and female Nobel laureates are there?",
+    "query": "MATCH (s:Scholar) RETURN s.gender, count(s) ORDER BY count(s) DESC",
+    "explanation": "GROUP BY gender with count aggregation"
+  },
+  {
+    "question": "Who won multiple Nobel prizes?",
+    "query": "MATCH (s:Scholar)-[:WON]->(p:Prize) WITH s, count(p) as prize_count WHERE prize_count > 1 RETURN s.knownName, prize_count ORDER BY prize_count DESC",
+    "explanation": "Aggregation with WHERE filtering on computed values"
+  },
+  {
+    "question": "List all Physics prizes awarded in the 1960s",
+    "query": "MATCH (p:Prize {category: 'physics'}) WHERE p.awardYear >= 1960 AND p.awardYear < 1970 RETURN p.awardYear ORDER BY p.awardYear",
+    "explanation": "Range filtering with WHERE clause"
+  },
+  {
+    "question": "Find scholars born in Europe",
+    "query": "MATCH (s:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(:Country)-[:IS_COUNTRY_IN]->(con:Continent {name: 'Europe'}) RETURN s.knownName",
+    "explanation": "Three-hop path to Continent using IS_COUNTRY_IN"
+  },
+  {
+    "question": "What is the average number of prizes per category?",
+    "query": "MATCH (p:Prize) RETURN p.category, count(p) as total ORDER BY total DESC",
+    "explanation": "GROUP BY category with count"
+  },
+  {
+    "question": "List all cities where Nobel laureates were born",
+    "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City) RETURN DISTINCT c.name ORDER BY c.name LIMIT 50",
+    "explanation": "DISTINCT values with LIMIT"
+  },
+  {
+    "question": "Find scholars born in London who won Chemistry prizes",
+    "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City {name: 'London'}), (s)-[:WON]->(p:Prize {category: 'chemistry'}) RETURN s.knownName",
+    "explanation": "Multiple MATCH patterns with shared variable"
+  },
+  {
+    "question": "How many scholars are affiliated with Harvard University?",
+    "query": "MATCH (s:Scholar)-[:AFFILIATED_WITH]->(i:Institution {name: 'Harvard University'}) RETURN count(s)",
+    "explanation": "Count with institution filtering"
+  },
+  {
+    "question": "List all countries where Nobel laureates were born",
+    "query": "MATCH (:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(co:Country) RETURN DISTINCT co.name ORDER BY co.name",
+    "explanation": "Multi-hop with DISTINCT country names"
+  },
+  {
+    "question": "Find the top 10 institutions by number of affiliated scholars",
+    "query": "MATCH (s:Scholar)-[:AFFILIATED_WITH]->(i:Institution) RETURN i.name, count(s) as scholar_count ORDER BY scholar_count DESC LIMIT 10",
+    "explanation": "Ranking with ORDER BY and LIMIT"
+  },
+  {
+    "question": "Who won the Nobel Prize in Medicine in 2015?",
+    "query": "MATCH (s:Scholar)-[:WON]->(p:Prize {category: 'medicine', awardYear: 2015}) RETURN s.knownName",
+    "explanation": "Multiple property filtering on Prize"
+  },
+  {
+    "question": "List scholars born in Asia who won Nobel prizes",
+    "query": "MATCH (s:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(:Country)-[:IS_COUNTRY_IN]->(con:Continent {name: 'Asia'}), (s)-[:WON]->(p:Prize) RETURN s.knownName, p.category",
+    "explanation": "Continental filtering with prize information"
+  },
+  {
+    "question": "How many Nobel prizes were awarded each decade?",
+    "query": "MATCH (p:Prize) WITH (p.awardYear / 10) * 10 as decade RETURN decade, count(*) as prizes ORDER BY decade",
+    "explanation": "Computed grouping by decade"
+  },
+  {
+    "question": "Find scholars affiliated with University of California",
+    "query": "MATCH (s:Scholar)-[:AFFILIATED_WITH]->(i:Institution {name: 'University of California'}) RETURN s.knownName ORDER BY s.knownName",
+    "explanation": "Institution filtering with alphabetical ordering"
+  },
+  {
+    "question": "What are the full names of all female Nobel laureates?",
+    "query": "MATCH (s:Scholar {gender: 'female'}) RETURN s.fullName ORDER BY s.fullName",
+    "explanation": "Gender filtering with fullName property"
+  },
+  {
+    "question": "List all Economics prizes awarded after 2010",
+    "query": "MATCH (p:Prize {category: 'economics'}) WHERE p.awardYear > 2010 RETURN p.awardYear ORDER BY p.awardYear",
+    "explanation": "Category with year range filtering"
+  },
+  {
+    "question": "Find scholars born in Germany who won Physics prizes",
+    "query": "MATCH (s:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(co:Country {name: 'Germany'}), (s)-[:WON]->(p:Prize {category: 'physics'}) RETURN s.knownName",
+    "explanation": "Country and category combined filtering"
+  },
+  {
+    "question": "How many scholars were born in each continent?",
+    "query": "MATCH (s:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(:Country)-[:IS_COUNTRY_IN]->(con:Continent) RETURN con.name, count(s) as total ORDER BY total DESC",
+    "explanation": "Continental statistics with aggregation"
+  },
+  {
+    "question": "What is the earliest Nobel Prize year?",
+    "query": "MATCH (p:Prize) RETURN min(p.awardYear)",
+    "explanation": "MIN aggregation function"
+  },
+  {
+    "question": "What is the latest Nobel Prize year?",
+    "query": "MATCH (p:Prize) RETURN max(p.awardYear)",
+    "explanation": "MAX aggregation function"
+  },
+  {
+    "question": "List scholars born in Paris",
+    "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City {name: 'Paris'}) RETURN s.knownName ORDER BY s.knownName",
+    "explanation": "City-specific birth filtering"
+  },
+  {
+    "question": "Find institutions located in the USA",
+    "query": "MATCH (i:Institution)-[:IS_LOCATED_IN]->(:City)-[:IS_CITY_IN]->(co:Country {name: 'USA'}) RETURN DISTINCT i.name ORDER BY i.name LIMIT 30",
+    "explanation": "Institution-City-Country path"
+  },
+  {
+    "question": "How many scholars won prizes in each category?",
+    "query": "MATCH (s:Scholar)-[:WON]->(p:Prize) RETURN p.category, count(DISTINCT s) as scholar_count ORDER BY scholar_count DESC",
+    "explanation": "DISTINCT count to avoid duplicate scholars"
+  },
+  {
+    "question": "List all scholars born in the United Kingdom",
+    "query": "MATCH (s:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(co:Country {name: 'United Kingdom'}) RETURN s.knownName",
+    "explanation": "UK-specific scholar filtering"
+  },
+  {
+    "question": "Find scholars who won Peace prizes",
+    "query": "MATCH (s:Scholar)-[:WON]->(p:Prize {category: 'peace'}) RETURN s.knownName ORDER BY s.knownName",
+    "explanation": "Peace prize filtering"
+  },
+  {
+    "question": "How many prizes were awarded in the 21st century?",
+    "query": "MATCH (p:Prize) WHERE p.awardYear >= 2000 RETURN count(p)",
+    "explanation": "Century-level time filtering"
+  },
+  {
+    "question": "List scholars affiliated with Stanford University",
+    "query": "MATCH (s:Scholar)-[:AFFILIATED_WITH]->(i:Institution {name: 'Stanford University'}) RETURN s.knownName",
+    "explanation": "Stanford-specific affiliation"
+  },
+  {
+    "question": "Find all scholars born in Japan",
+    "query": "MATCH (s:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(co:Country {name: 'Japan'}) RETURN s.knownName",
+    "explanation": "Japan-specific birth filtering"
+  },
+  {
+    "question": "What are the prize categories?",
+    "query": "MATCH (p:Prize) RETURN DISTINCT p.category ORDER BY p.category",
+    "explanation": "Extracting distinct categories"
+  },
+  {
+    "question": "Find scholars born in China who won Nobel prizes",
+    "query": "MATCH (s:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(co:Country {name: 'China'}), (s)-[:WON]->(p:Prize) RETURN s.knownName, p.category, p.awardYear",
+    "explanation": "China-specific with prize details"
+  },
+  {
+    "question": "List institutions located in Cambridge, MA",
+    "query": "MATCH (i:Institution)-[:IS_LOCATED_IN]->(c:City {name: 'Cambridge, MA'}) RETURN i.name",
+    "explanation": "Cambridge institution filtering"
+  },
+  {
+    "question": "How many scholars were born in each country?",
+    "query": "MATCH (s:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(co:Country) RETURN co.name, count(s) as total ORDER BY total DESC LIMIT 20",
+    "explanation": "Country-level birth statistics"
+  },
+  {
+    "question": "Find scholars born in Vienna",
+    "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City {name: 'Vienna'}) RETURN s.knownName",
+    "explanation": "Vienna-specific birth filtering"
+  },
+  {
+    "question": "List all Physics prizes awarded between 1950 and 1960",
+    "query": "MATCH (p:Prize {category: 'physics'}) WHERE p.awardYear >= 1950 AND p.awardYear <= 1960 RETURN p.awardYear ORDER BY p.awardYear",
+    "explanation": "Decade range with inclusive bounds"
+  },
+  {
+    "question": "Find scholars affiliated with Caltech",
+    "query": "MATCH (s:Scholar)-[:AFFILIATED_WITH]->(i:Institution {name: 'California Institute of Technology (Caltech)'}) RETURN s.knownName",
+    "explanation": "Caltech affiliation filtering"
+  },
+  {
+    "question": "How many scholars were born in each city?",
+    "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City) RETURN c.name, count(s) as total ORDER BY total DESC LIMIT 25",
+    "explanation": "City-level birth statistics"
+  },
+  {
+    "question": "List scholars who won Chemistry prizes after 2000",
+    "query": "MATCH (s:Scholar)-[:WON]->(p:Prize {category: 'chemistry'}) WHERE p.awardYear > 2000 RETURN s.knownName, p.awardYear ORDER BY p.awardYear",
+    "explanation": "Category with modern year filtering"
+  },
+  {
+    "question": "Find all scholars born in France",
+    "query": "MATCH (s:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(co:Country {name: 'France'}) RETURN s.knownName",
+    "explanation": "France-specific birth filtering"
+  },
+  {
+    "question": "What is the total number of Nobel laureates?",
+    "query": "MATCH (s:Scholar) RETURN count(s)",
+    "explanation": "Total scholar count"
+  },
+  {
+    "question": "List scholars affiliated with Princeton University",
+    "query": "MATCH (s:Scholar)-[:AFFILIATED_WITH]->(i:Institution {name: 'Princeton University'}) RETURN s.knownName",
+    "explanation": "Princeton affiliation"
+  },
+  {
+    "question": "Find scholars born in North America",
+    "query": "MATCH (s:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(:Country)-[:IS_COUNTRY_IN]->(con:Continent {name: 'North America'}) RETURN s.knownName LIMIT 50",
+    "explanation": "North American continent filtering"
+  },
+  {
+    "question": "How many prizes has each scholar won?",
+    "query": "MATCH (s:Scholar)-[:WON]->(p:Prize) RETURN s.knownName, count(p) as prize_count ORDER BY prize_count DESC, s.knownName LIMIT 20",
+    "explanation": "Scholar prize count with dual sorting"
+  },
+  {
+    "question": "List all scholars born in Moscow",
+    "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City {name: 'Moscow'}) RETURN s.knownName",
+    "explanation": "Moscow-specific birth location"
+  },
+  {
+    "question": "Find Medicine prizes awarded in the 1980s",
+    "query": "MATCH (p:Prize {category: 'medicine'}) WHERE p.awardYear >= 1980 AND p.awardYear < 1990 RETURN p.awardYear ORDER BY p.awardYear",
+    "explanation": "Medicine with 1980s decade filtering"
+  },
+  {
+    "question": "List scholars born in Sweden",
+    "query": "MATCH (s:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(co:Country {name: 'Sweden'}) RETURN s.knownName",
+    "explanation": "Sweden-specific filtering"
+  },
+  {
+    "question": "How many institutions are in the database?",
+    "query": "MATCH (i:Institution) RETURN count(i)",
+    "explanation": "Total institution count"
+  },
+  {
+    "question": "Find scholars affiliated with University of Chicago",
+    "query": "MATCH (s:Scholar)-[:AFFILIATED_WITH]->(i:Institution {name: 'University of Chicago'}) RETURN s.knownName",
+    "explanation": "University of Chicago affiliation"
+  },
+  {
+    "question": "List scholars who won prizes before 1920",
+    "query": "MATCH (s:Scholar)-[:WON]->(p:Prize) WHERE p.awardYear < 1920 RETURN s.knownName, p.awardYear ORDER BY p.awardYear",
+    "explanation": "Early 20th century prize filtering"
+  },
+  {
+    "question": "Find scholars born in Europe who won Physics prizes",
+    "query": "MATCH (s:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(:Country)-[:IS_COUNTRY_IN]->(con:Continent {name: 'Europe'}), (s)-[:WON]->(p:Prize {category: 'physics'}) RETURN s.knownName",
+    "explanation": "Continental and category combined"
+  },
+  {
+    "question": "How many cities are in the database?",
+    "query": "MATCH (c:City) RETURN count(c)",
+    "explanation": "Total city count"
+  },
+  {
+    "question": "List all continents",
+    "query": "MATCH (con:Continent) RETURN con.name ORDER BY con.name",
+    "explanation": "All continent names"
+  },
+  {
+    "question": "Find scholars born in Berlin",
+    "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City {name: 'Berlin'}) RETURN s.knownName",
+    "explanation": "Berlin birth location"
+  },
+  {
+    "question": "How many countries are represented?",
+    "query": "MATCH (co:Country) RETURN count(co)",
+    "explanation": "Total country count"
+  },
+  {
+    "question": "List scholars born after 1950",
+    "query": "MATCH (s:Scholar) WHERE s.birthDate IS NOT NULL AND s.birthDate >= '1950-01-01' RETURN s.knownName, s.birthDate ORDER BY s.birthDate LIMIT 30",
+    "explanation": "birthDate property filtering with date comparison"
+  },
+  {
+    "question": "Find scholars born in the 1920s",
+    "query": "MATCH (s:Scholar) WHERE s.birthDate >= '1920-01-01' AND s.birthDate < '1930-01-01' RETURN s.knownName, s.birthDate ORDER BY s.birthDate",
+    "explanation": "Birth decade filtering using birthDate"
+  },
+  {
+    "question": "What was the motivation for Chemistry prizes in 2020?",
+    "query": "MATCH (p:Prize {category: 'chemistry', awardYear: 2020}) WHERE p.motivation IS NOT NULL RETURN p.motivation",
+    "explanation": "motivation property access for prize details"
+  },
+  {
+    "question": "List prize motivations for Physics in 2015",
+    "query": "MATCH (p:Prize {category: 'physics', awardYear: 2015}) RETURN p.motivation ORDER BY p.motivation",
+    "explanation": "Extracting motivation text from prizes"
+  },
+  {
+    "question": "Find scholars with known birth dates who won prizes",
+    "query": "MATCH (s:Scholar)-[:WON]->(p:Prize) WHERE s.birthDate IS NOT NULL RETURN s.knownName, s.birthDate, p.awardYear ORDER BY s.birthDate LIMIT 20",
+    "explanation": "Combining birthDate with prize information"
+  },
+  {
+    "question": "What are the earliest birth dates of Nobel laureates?",
+    "query": "MATCH (s:Scholar) WHERE s.birthDate IS NOT NULL RETURN min(s.birthDate)",
+    "explanation": "MIN aggregation on birthDate property"
+  },
+  {
+    "question": "List recent laureates born after 1970",
+    "query": "MATCH (s:Scholar)-[:WON]->(p:Prize) WHERE s.birthDate >= '1970-01-01' RETURN s.knownName, s.birthDate, p.awardYear ORDER BY p.awardYear DESC LIMIT 20",
+    "explanation": "Modern scholars using birthDate filtering (database has scholars born up to 1974)"
+  },
+  {
+    "question": "Find all prize motivations containing 'quantum'",
+    "query": "MATCH (p:Prize) WHERE p.motivation IS NOT NULL AND toLower(p.motivation) CONTAINS 'quantum' RETURN p.category, p.awardYear, p.motivation",
+    "explanation": "Text search in motivation field with CONTAINS"
+  },
+  {
+    "question": "Show scholars' full names and birth dates",
+    "query": "MATCH (s:Scholar) WHERE s.birthDate IS NOT NULL AND s.fullName IS NOT NULL RETURN s.fullName, s.birthDate ORDER BY s.birthDate DESC LIMIT 25",
+    "explanation": "Accessing both fullName and birthDate properties"
+  },
+  {
+    "question": "List scholars born in each decade of the 20th century",
+    "query": "MATCH (s:Scholar) WHERE s.birthDate >= '1900-01-01' AND s.birthDate < '2000-01-01' WITH substring(s.birthDate, 0, 3) + '0s' as decade RETURN decade, count(*) ORDER BY decade",
+    "explanation": "Decade grouping using birthDate string manipulation"
+  },
+  {
+    "question": "Who won Chemistry prizes after 2000 before 2020?",
+    "query": "MATCH (s:Scholar)-[:WON]->(p:Prize {category: 'chemistry'}) WHERE p.awardYear > 2000 AND p.awardYear < 2020 RETURN s.knownName, p.awardYear ORDER BY p.awardYear",
+    "explanation": "Date range with both lower and upper bounds using AND"
+  },
+  {
+    "question": "Find Chemistry winners between 2000 and 2020",
+    "query": "MATCH (s:Scholar)-[:WON]->(p:Prize {category: 'chemistry'}) WHERE p.awardYear >= 2000 AND p.awardYear <= 2020 RETURN s.knownName, p.awardYear ORDER BY p.awardYear",
+    "explanation": "Inclusive date range filtering with >= and <="
+  },
+  {
+    "question": "List all female scholars",
+    "query": "MATCH (s:Scholar {gender: 'female'}) RETURN s.knownName ORDER BY s.knownName",
+    "explanation": "Gender filtering - use 'female' not 'woman'"
+  },
+  {
+    "question": "How many women won Nobel prizes?",
+    "query": "MATCH (s:Scholar {gender: 'female'})-[:WON]->(p:Prize) RETURN count(DISTINCT s)",
+    "explanation": "Female gender query - database stores 'female' value"
+  },
+  {
+    "question": "Find male scholars who won Physics prizes",
+    "query": "MATCH (s:Scholar {gender: 'male'})-[:WON]->(p:Prize {category: 'physics'}) RETURN s.knownName",
+    "explanation": "Gender and category filtering - use 'male' not 'man'"
+  },
+  {
+    "question": "Where are Chemistry prize winners from?",
+    "query": "MATCH (s:Scholar)-[:WON]->(p:Prize {category: 'chemistry'}), (s)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(co:Country) RETURN DISTINCT co.name, count(s) as scholar_count ORDER BY scholar_count DESC",
+    "explanation": "Prize category with birth country aggregation"
+  },
+  {
+    "question": "Which countries do Physics winners come from?",
+    "query": "MATCH (s:Scholar)-[:WON]->(p:Prize {category: 'physics'}), (s)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(co:Country) RETURN co.name, count(DISTINCT s) as total ORDER BY total DESC LIMIT 20",
+    "explanation": "Winners' countries of origin with aggregation"
+  },
+  {
+    "question": "Which scholars won prizes in Physics and were affiliated with University of Cambridge?",
+    "query": "MATCH (s:Scholar)-[:WON]->(p:Prize), (s)-[:AFFILIATED_WITH]->(i:Institution) WHERE toLower(p.category) = 'physics' AND toLower(i.name) CONTAINS 'cambridge' RETURN DISTINCT s.fullName",
+    "explanation": "Prize category and institution filtering with fullName property"
+  }
+]

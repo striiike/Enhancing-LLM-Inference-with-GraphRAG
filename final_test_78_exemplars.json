@@ -1,0 +1,1435 @@
+{
+  "metadata": {
+    "total_exemplars": 78,
+    "test_date": "2025-11-16T18:19:26.803625",
+    "model": "gemini/gemini-2.5-flash-lite",
+    "max_tokens": 6000
+  },
+  "summary": {
+    "total_exemplars": 78,
+    "schema_prune_failures": 0,
+    "valid_comparisons": 76,
+    "enhanced": {
+      "wins": 34,
+      "win_rate": "44.7%",
+      "total_results": 3445,
+      "errors": 4,
+      "error_rate": "5.1%"
+    },
+    "baseline": {
+      "wins": 5,
+      "win_rate": "6.6%",
+      "total_results": 4921,
+      "errors": 6,
+      "error_rate": "7.7%"
+    },
+    "ties": 37,
+    "tie_rate": "48.7%"
+  },
+  "details": [
+    {
+      "index": 1,
+      "question": "Who won the Nobel Prize in Physics?",
+      "expected": 225,
+      "enhanced": {
+        "count": 100,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize {category: 'physics'}) RETURN s.fullName LIMIT 100"
+      },
+      "baseline": {
+        "count": 0,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize) WHERE p.category = 'Physics' RETURN s.fullName"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 2,
+      "question": "List all Nobel laureates born in New York",
+      "expected": 51,
+      "enhanced": {
+        "count": 51,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City {name: 'New York, NY'}) RETURN s.fullName LIMIT 100"
+      },
+      "baseline": {
+        "count": 0,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City {name: 'New York'}) RETURN s.fullName"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 3,
+      "question": "Find scholars affiliated with MIT",
+      "expected": 22,
+      "enhanced": {
+        "count": 22,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:AFFILIATED_WITH]->(i:Institution {name: 'Massachusetts Institute of Technology (MIT)'}) RETURN s.knownName LIMIT 100"
+      },
+      "baseline": {
+        "count": 0,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:AFFILIATED_WITH]->(i:Institution {name: 'MIT'}) RETURN s"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 4,
+      "question": "How many Nobel prizes were awarded in Chemistry?",
+      "expected": 1,
+      "enhanced": {
+        "count": 1,
+        "error": null,
+        "success": true,
+        "query": "MATCH (p:Prize {category: 'chemistry'}) RETURN count(p)"
+      },
+      "baseline": {
+        "count": 1,
+        "error": null,
+        "success": true,
+        "query": "MATCH (p:Prize) WHERE p.category = 'Chemistry' RETURN count(p)"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 5,
+      "question": "Who won Nobel prizes in 2020?",
+      "expected": 10,
+      "enhanced": {
+        "count": 10,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize {awardYear: 2020}) RETURN s.fullName LIMIT 100"
+      },
+      "baseline": {
+        "count": 10,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize) WHERE p.awardYear = 2020 RETURN s.fullName"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 6,
+      "question": "List all scholars born in the USA",
+      "expected": 258,
+      "enhanced": {
+        "count": 100,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(co:Country {name: 'USA'}) RETURN s.fullName LIMIT 100"
+      },
+      "baseline": {
+        "count": 258,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City)-[:IS_CITY_IN]->(cy:Country {name: 'USA'}) RETURN s.fullName"
+      },
+      "winner": "baseline"
+    },
+    {
+      "index": 7,
+      "question": "Find institutions located in Cambridge",
+      "expected": 5,
+      "enhanced": {
+        "count": 6,
+        "error": null,
+        "success": true,
+        "query": "MATCH (i:Institution)-[:IS_LOCATED_IN]->(c:City) WHERE toLower(c.name) = 'cambridge' RETURN i.name LIMIT 100"
+      },
+      "baseline": {
+        "count": 6,
+        "error": null,
+        "success": true,
+        "query": "MATCH (i:Institution)-[:IS_LOCATED_IN]->(c:City) WHERE c.name = 'Cambridge' RETURN i.name"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 8,
+      "question": "How many male and female Nobel laureates are there?",
+      "expected": 2,
+      "enhanced": {
+        "count": 2,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar) RETURN s.gender, count(s) ORDER BY count(s) DESC"
+      },
+      "baseline": {
+        "count": 2,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar) RETURN s.gender, count(s) AS count"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 9,
+      "question": "Who won multiple Nobel prizes?",
+      "expected": 5,
+      "enhanced": {
+        "count": 5,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize) WITH s, count(p) AS prizeCount WHERE prizeCount > 1 RETURN s.fullName"
+      },
+      "baseline": {
+        "count": 5,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize) WITH s, count(p) AS prizeCount WHERE prizeCount > 1 RETURN s.fullName"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 10,
+      "question": "List all Physics prizes awarded in the 1960s",
+      "expected": 10,
+      "enhanced": {
+        "count": 10,
+        "error": null,
+        "success": true,
+        "query": "MATCH (p:Prize {category: 'physics'}) WHERE p.awardYear >= 1960 AND p.awardYear < 1970 RETURN p.awardYear ORDER BY p.awardYear LIMIT 100"
+      },
+      "baseline": {
+        "count": 32,
+        "error": null,
+        "success": true,
+        "query": "MATCH (p:Prize) WHERE p.awardYear >= 1960 AND p.awardYear <= 1969 RETURN p"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 11,
+      "question": "Find scholars born in Europe",
+      "expected": 373,
+      "enhanced": {
+        "count": 100,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(:Country)-[:IS_COUNTRY_IN]->(con:Continent {name: 'Europe'}) RETURN s.fullName LIMIT 100"
+      },
+      "baseline": {
+        "count": 373,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(:Country)-[:IS_COUNTRY_IN]->(cont:Continent {name: 'Europe'}) RETURN s.fullName"
+      },
+      "winner": "baseline"
+    },
+    {
+      "index": 12,
+      "question": "What is the average number of prizes per category?",
+      "expected": 5,
+      "enhanced": {
+        "count": 5,
+        "error": null,
+        "success": true,
+        "query": "MATCH (p:Prize) RETURN p.category, count(p) AS total ORDER BY total DESC"
+      },
+      "baseline": {
+        "count": 1,
+        "error": null,
+        "success": true,
+        "query": "MATCH (p:Prize) WITH p.category AS category, count(p) AS prizeCount RETURN avg(prizeCount) AS averagePrizesPerCategory"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 13,
+      "question": "List all cities where Nobel laureates were born",
+      "expected": 50,
+      "enhanced": {
+        "count": 100,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City) RETURN DISTINCT c.name ORDER BY c.name LIMIT 100"
+      },
+      "baseline": {
+        "count": 482,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City) RETURN DISTINCT c.name"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 14,
+      "question": "Find scholars born in London who won Chemistry prizes",
+      "expected": 3,
+      "enhanced": {
+        "count": 3,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City), (s)-[:WON]->(p:Prize) WHERE toLower(c.name) = 'london' AND toLower(p.category) = 'chemistry' RETURN s.fullName LIMIT 100"
+      },
+      "baseline": {
+        "count": 0,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City), (s)-[:WON]->(p:Prize)\nWHERE c.name = 'London' AND p.category = 'Chemistry'\nRETURN s.fullName"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 15,
+      "question": "How many scholars are affiliated with Harvard University?",
+      "expected": 1,
+      "enhanced": {
+        "count": 1,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:AFFILIATED_WITH]->(i:Institution {name: 'Harvard University'}) RETURN count(s)"
+      },
+      "baseline": {
+        "count": 1,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:AFFILIATED_WITH]->(i:Institution {name: \"Harvard University\"})\nRETURN count(s)"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 16,
+      "question": "List all countries where Nobel laureates were born",
+      "expected": 56,
+      "enhanced": {
+        "count": 56,
+        "error": null,
+        "success": true,
+        "query": "MATCH (:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(co:Country) RETURN DISTINCT co.name ORDER BY co.name LIMIT 100"
+      },
+      "baseline": {
+        "count": 56,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City)-[:IS_CITY_IN]->(country:Country) RETURN DISTINCT country.name"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 17,
+      "question": "Find the top 10 institutions by number of affiliated scholars",
+      "expected": 10,
+      "enhanced": {
+        "count": 344,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:AFFILIATED_WITH]->(i:Institution) RETURN i.name, count(s) AS scholar_count"
+      },
+      "baseline": {
+        "count": 10,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:AFFILIATED_WITH]->(i:Institution) RETURN i.name, count(s) AS scholarCount ORDER BY scholarCount DESC LIMIT 10"
+      },
+      "winner": "baseline"
+    },
+    {
+      "index": 18,
+      "question": "Who won the Nobel Prize in Medicine in 2015?",
+      "expected": 3,
+      "enhanced": {
+        "count": 3,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize) WHERE toLower(p.category) = 'medicine' AND p.awardYear = 2015 RETURN s.fullName LIMIT 100"
+      },
+      "baseline": {
+        "count": 0,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize) WHERE p.awardYear = 2015 AND p.category = 'Medicine' RETURN s.fullName"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 19,
+      "question": "List scholars born in Asia who won Nobel prizes",
+      "expected": 51,
+      "enhanced": {
+        "count": 51,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(:Country)-[:IS_COUNTRY_IN]->(con:Continent {name: 'Asia'}), (s)-[:WON]->(p:Prize) RETURN s.fullName LIMIT 100"
+      },
+      "baseline": {
+        "count": 0,
+        "error": "Binder exception: Cannot find property name for p.",
+        "success": false,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(:Country)-[:IS_COUNTRY_IN]->(c:Continent {name: 'Asia'}) MATCH (s)-[:WON]->(p:Prize {name: 'Nobel Prize'}) RETURN s.fullName"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 20,
+      "question": "How many Nobel prizes were awarded each decade?",
+      "expected": 13,
+      "enhanced": {
+        "count": 0,
+        "error": "Binder exception: decade has data type INT64 but (NODE,REL,STRUCT,ANY) was expected.",
+        "success": false,
+        "query": "MATCH (p:Prize) WITH (p.awardYear / 10) * 10 as decade RETURN decade.name, count(*) as prizes ORDER BY decade"
+      },
+      "baseline": {
+        "count": 13,
+        "error": null,
+        "success": true,
+        "query": "MATCH (p:Prize) WITH floor(p.awardYear / 10) * 10 AS decade RETURN decade, count(*) AS numberOfPrizes ORDER BY decade"
+      },
+      "winner": "baseline"
+    },
+    {
+      "index": 21,
+      "question": "Find scholars affiliated with University of California",
+      "expected": 39,
+      "enhanced": {
+        "count": 39,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:AFFILIATED_WITH]->(i:Institution {name: 'University of California'}) RETURN s.knownName ORDER BY s.knownName LIMIT 100"
+      },
+      "baseline": {
+        "count": 0,
+        "error": "Binder exception: Cannot find property name for s.",
+        "success": false,
+        "query": "MATCH (s:Scholar)-[:AFFILIATED_WITH]->(i:Institution {name: 'University of California'}) RETURN s.name"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 22,
+      "question": "What are the full names of all female Nobel laureates?",
+      "expected": 25,
+      "enhanced": {
+        "count": 25,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar {gender: 'female'}) RETURN s.fullName ORDER BY s.fullName LIMIT 100"
+      },
+      "baseline": {
+        "count": 25,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar) WHERE s.gender = 'female' RETURN s.fullName"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 23,
+      "question": "List all Economics prizes awarded after 2010",
+      "expected": 12,
+      "enhanced": {
+        "count": 0,
+        "error": "litellm.RateLimitError: litellm.RateLimitError: VertexAIException - {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, p",
+        "success": false,
+        "query": null
+      },
+      "baseline": {
+        "count": 0,
+        "error": "1 validation error for Query\n  Input should be a valid dictionary or instance of Query [type=model_type, input_value=\"MATCH (p:Prize) WHERE p....ardYe",
+        "success": false,
+        "query": null
+      },
+      "winner": "none"
+    },
+    {
+      "index": 24,
+      "question": "Find scholars born in Germany who won Physics prizes",
+      "expected": 27,
+      "enhanced": {
+        "count": 27,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(c:Country {name: 'Germany'}), (s)-[:WON]->(p:Prize {category: 'physics'}) RETURN s.fullName LIMIT 100"
+      },
+      "baseline": {
+        "count": 0,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City)-[:IS_CITY_IN]->(country:Country {name: 'Germany'}), (s)-[:WON]->(p:Prize {category: 'Physics'}) RETURN s.fullName"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 25,
+      "question": "How many scholars were born in each continent?",
+      "expected": 6,
+      "enhanced": {
+        "count": 6,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(:Country)-[:IS_COUNTRY_IN]->(con:Continent) RETURN con.name, count(s) as total ORDER BY total DESC"
+      },
+      "baseline": {
+        "count": 6,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(:Country)-[:IS_COUNTRY_IN]->(c:Continent) RETURN c.name, count(s) AS scholarCount"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 26,
+      "question": "What is the earliest Nobel Prize year?",
+      "expected": 1,
+      "enhanced": {
+        "count": 1,
+        "error": null,
+        "success": true,
+        "query": "MATCH (p:Prize) RETURN min(p.awardYear)"
+      },
+      "baseline": {
+        "count": 1,
+        "error": null,
+        "success": true,
+        "query": "MATCH (p:Prize) RETURN p.awardYear ORDER BY p.awardYear ASC LIMIT 1"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 27,
+      "question": "What is the latest Nobel Prize year?",
+      "expected": 1,
+      "enhanced": {
+        "count": 1,
+        "error": null,
+        "success": true,
+        "query": "MATCH (p:Prize) RETURN max(p.awardYear)"
+      },
+      "baseline": {
+        "count": 1,
+        "error": null,
+        "success": true,
+        "query": "MATCH (p:Prize) RETURN p.awardYear ORDER BY p.awardYear DESC LIMIT 1"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 28,
+      "question": "List scholars born in Paris",
+      "expected": 15,
+      "enhanced": {
+        "count": 15,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City {name: 'Paris'}) RETURN s.knownName ORDER BY s.knownName LIMIT 100"
+      },
+      "baseline": {
+        "count": 15,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City {name: 'Paris'}) RETURN s.fullName"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 29,
+      "question": "Find institutions located in the USA",
+      "expected": 30,
+      "enhanced": {
+        "count": 30,
+        "error": null,
+        "success": true,
+        "query": "MATCH (i:Institution)-[:IS_LOCATED_IN]->(:City)-[:IS_CITY_IN]->(co:Country {name: 'USA'}) RETURN DISTINCT i.name ORDER BY i.name LIMIT 30"
+      },
+      "baseline": {
+        "count": 137,
+        "error": null,
+        "success": true,
+        "query": "MATCH (i:Institution)-[:IS_LOCATED_IN]->(c:City)-[:IS_CITY_IN]->(co:Country) WHERE co.name = 'USA' RETURN i.name"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 30,
+      "question": "How many scholars won prizes in each category?",
+      "expected": 5,
+      "enhanced": {
+        "count": 5,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize) RETURN p.category, count(DISTINCT s) as scholar_count ORDER BY scholar_count DESC"
+      },
+      "baseline": {
+        "count": 5,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize) RETURN p.category, count(s) AS scholarCount"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 31,
+      "question": "List all scholars born in the United Kingdom",
+      "expected": 78,
+      "enhanced": {
+        "count": 78,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(co:Country {name: 'United Kingdom'}) RETURN s.fullName LIMIT 100"
+      },
+      "baseline": {
+        "count": 78,
+        "error": null,
+        "success": true,
+        "query": "MATCH (c:Country {name: 'United Kingdom'})<-[:IS_CITY_IN]-(city:City)<-[:BORN_IN]-(s:Scholar) RETURN s.fullName"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 32,
+      "question": "Find scholars who won Peace prizes",
+      "expected": 1,
+      "enhanced": {
+        "count": 1,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize {category: 'peace'}) RETURN s.knownName ORDER BY s.knownName LIMIT 100"
+      },
+      "baseline": {
+        "count": 0,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize) WHERE p.category = 'Peace' RETURN s"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 33,
+      "question": "How many prizes were awarded in the 21st century?",
+      "expected": 1,
+      "enhanced": {
+        "count": 1,
+        "error": null,
+        "success": true,
+        "query": "MATCH (p:Prize) WHERE p.awardYear >= 2000 RETURN count(p)"
+      },
+      "baseline": {
+        "count": 1,
+        "error": null,
+        "success": true,
+        "query": "MATCH (p:Prize) WHERE p.awardYear >= 2001 AND p.awardYear <= 2100 RETURN count(p)"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 34,
+      "question": "List scholars affiliated with Stanford University",
+      "expected": 22,
+      "enhanced": {
+        "count": 22,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:AFFILIATED_WITH]->(i:Institution {name: 'Stanford University'}) RETURN s.fullName LIMIT 100"
+      },
+      "baseline": {
+        "count": 22,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:AFFILIATED_WITH]->(i:Institution {name: 'Stanford University'}) RETURN s.fullName"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 35,
+      "question": "Find all scholars born in Japan",
+      "expected": 24,
+      "enhanced": {
+        "count": 24,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(c:Country {name: 'Japan'}) RETURN s.fullName LIMIT 100"
+      },
+      "baseline": {
+        "count": 24,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City)-[:IS_CITY_IN]->(country:Country) WHERE country.name = 'Japan' RETURN s.fullName"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 36,
+      "question": "What are the prize categories?",
+      "expected": 5,
+      "enhanced": {
+        "count": 5,
+        "error": null,
+        "success": true,
+        "query": "MATCH (p:Prize) RETURN DISTINCT p.category ORDER BY p.category LIMIT 100"
+      },
+      "baseline": {
+        "count": 5,
+        "error": null,
+        "success": true,
+        "query": "MATCH (p:Prize) RETURN DISTINCT p.category"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 37,
+      "question": "Find scholars born in China who won Nobel prizes",
+      "expected": 8,
+      "enhanced": {
+        "count": 8,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(c:Country {name: 'China'}), (s)-[:WON]->(p:Prize) RETURN s.fullName, p.category LIMIT 100"
+      },
+      "baseline": {
+        "count": 0,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City)-[:IS_CITY_IN]->(country:Country {name: 'China'}), (s)-[:WON]->(p:Prize) WHERE p.category = 'Nobel Prize' RETURN s.fullName"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 38,
+      "question": "List institutions located in Cambridge, MA",
+      "expected": 5,
+      "enhanced": {
+        "count": 5,
+        "error": null,
+        "success": true,
+        "query": "MATCH (i:Institution)-[:IS_LOCATED_IN]->(c:City {name: 'Cambridge, MA'}) RETURN i.name LIMIT 100"
+      },
+      "baseline": {
+        "count": 0,
+        "error": null,
+        "success": true,
+        "query": "MATCH (i:Institution)-[:IS_LOCATED_IN]->(c:City) WHERE c.name = 'Cambridge' AND c.state = 'MA' RETURN i.name"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 39,
+      "question": "How many scholars were born in each country?",
+      "expected": 20,
+      "enhanced": {
+        "count": 20,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(co:Country) RETURN co.name, count(s) as total ORDER BY total DESC LIMIT 20"
+      },
+      "baseline": {
+        "count": 56,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City)-[:IS_CITY_IN]->(country:Country) RETURN country.name, count(s) AS scholarCount"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 40,
+      "question": "Find scholars born in Vienna",
+      "expected": 13,
+      "enhanced": {
+        "count": 13,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City) WHERE toLower(c.name) = toLower('Vienna') RETURN s.fullName LIMIT 100"
+      },
+      "baseline": {
+        "count": 13,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City {name: 'Vienna'}) RETURN s.fullName"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 41,
+      "question": "List all Physics prizes awarded between 1950 and 1960",
+      "expected": 11,
+      "enhanced": {
+        "count": 11,
+        "error": null,
+        "success": true,
+        "query": "MATCH (p:Prize {category: 'physics'}) WHERE p.awardYear >= 1950 AND p.awardYear <= 1960 RETURN p.awardYear ORDER BY p.awardYear LIMIT 100"
+      },
+      "baseline": {
+        "count": 0,
+        "error": null,
+        "success": true,
+        "query": "MATCH (p:Prize) WHERE p.awardYear >= 1950 AND p.awardYear <= 1960 AND p.category = 'Physics' RETURN p"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 42,
+      "question": "Find scholars affiliated with Caltech",
+      "expected": 19,
+      "enhanced": {
+        "count": 19,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:AFFILIATED_WITH]->(i:Institution {name: 'California Institute of Technology (Caltech)'}) RETURN s.fullName LIMIT 100"
+      },
+      "baseline": {
+        "count": 0,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:AFFILIATED_WITH]->(i:Institution {name: 'Caltech'}) RETURN s.fullName"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 43,
+      "question": "How many scholars were born in each city?",
+      "expected": 25,
+      "enhanced": {
+        "count": 482,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City) RETURN c.name, count(s) AS scholarCount ORDER BY scholarCount DESC"
+      },
+      "baseline": {
+        "count": 482,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City) RETURN c.name, count(s) AS scholarCount"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 44,
+      "question": "List scholars who won Chemistry prizes after 2000",
+      "expected": 56,
+      "enhanced": {
+        "count": 56,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize {category: 'chemistry'}) WHERE p.awardYear > 2000 RETURN s.fullName, p.awardYear ORDER BY p.awardYear LIMIT 100"
+      },
+      "baseline": {
+        "count": 0,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize) WHERE p.category = 'Chemistry' AND p.awardYear > 2000 RETURN s.fullName"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 45,
+      "question": "Find all scholars born in France",
+      "expected": 37,
+      "enhanced": {
+        "count": 37,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(co:Country) WHERE toLower(co.name) = 'france' RETURN s.fullName LIMIT 100"
+      },
+      "baseline": {
+        "count": 37,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City)-[:IS_CITY_IN]->(country:Country) WHERE country.name = 'France' RETURN s"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 46,
+      "question": "What is the total number of Nobel laureates?",
+      "expected": 1,
+      "enhanced": {
+        "count": 1,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar) RETURN count(s)"
+      },
+      "baseline": {
+        "count": 1,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar) WHERE s.scholar_type = 'Nobel Laureate' RETURN count(s)"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 47,
+      "question": "List scholars affiliated with Princeton University",
+      "expected": 17,
+      "enhanced": {
+        "count": 17,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:AFFILIATED_WITH]->(i:Institution {name: 'Princeton University'}) RETURN s.knownName LIMIT 100"
+      },
+      "baseline": {
+        "count": 17,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:AFFILIATED_WITH]->(i:Institution {name: 'Princeton University'}) RETURN s.fullName"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 48,
+      "question": "Find scholars born in North America",
+      "expected": 50,
+      "enhanced": {
+        "count": 100,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(:Country)-[:IS_COUNTRY_IN]->(con:Continent {name: 'North America'}) RETURN s.fullName LIMIT 100"
+      },
+      "baseline": {
+        "count": 278,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City)-[:IS_CITY_IN]->(cy:Country)-[:IS_COUNTRY_IN]->(co:Continent) WHERE co.name = 'North America' RETURN s.fullName"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 49,
+      "question": "How many prizes has each scholar won?",
+      "expected": 20,
+      "enhanced": {
+        "count": 726,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize) RETURN s.fullName, count(p) AS prize_count ORDER BY prize_count DESC"
+      },
+      "baseline": {
+        "count": 726,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize) WITH s.fullName AS scholarName, count(p) AS prizeCount RETURN scholarName, prizeCount"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 50,
+      "question": "List all scholars born in Moscow",
+      "expected": 5,
+      "enhanced": {
+        "count": 5,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City {name: 'Moscow'}) RETURN s.fullName LIMIT 100"
+      },
+      "baseline": {
+        "count": 5,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City {name: 'Moscow'}) RETURN s.fullName"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 51,
+      "question": "Find Medicine prizes awarded in the 1980s",
+      "expected": 10,
+      "enhanced": {
+        "count": 10,
+        "error": null,
+        "success": true,
+        "query": "MATCH (p:Prize {category: 'medicine'}) WHERE p.awardYear >= 1980 AND p.awardYear < 1990 RETURN p.awardYear ORDER BY p.awardYear LIMIT 100"
+      },
+      "baseline": {
+        "count": 40,
+        "error": null,
+        "success": true,
+        "query": "MATCH (p:Prize) WHERE p.awardYear >= 1980 AND p.awardYear <= 1989 RETURN p"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 52,
+      "question": "List scholars born in Sweden",
+      "expected": 18,
+      "enhanced": {
+        "count": 18,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City)-[:IS_CITY_IN]->(co:Country {name: 'Sweden'}) RETURN s.fullName LIMIT 100"
+      },
+      "baseline": {
+        "count": 18,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City)-[:IS_CITY_IN]->(country:Country) WHERE country.name = 'Sweden' RETURN s.fullName"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 53,
+      "question": "How many institutions are in the database?",
+      "expected": 1,
+      "enhanced": {
+        "count": 1,
+        "error": null,
+        "success": true,
+        "query": "MATCH (i:Institution) RETURN count(i)"
+      },
+      "baseline": {
+        "count": 1,
+        "error": null,
+        "success": true,
+        "query": "MATCH (i:Institution) RETURN count(i)"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 54,
+      "question": "Find scholars affiliated with University of Chicago",
+      "expected": 19,
+      "enhanced": {
+        "count": 19,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:AFFILIATED_WITH]->(i:Institution {name: 'University of Chicago'}) RETURN s.knownName LIMIT 100"
+      },
+      "baseline": {
+        "count": 0,
+        "error": "Binder exception: Cannot find property name for s.",
+        "success": false,
+        "query": "MATCH (s:Scholar)-[:AFFILIATED_WITH]->(i:Institution {name: 'University of Chicago'}) RETURN s.name"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 55,
+      "question": "List scholars who won prizes before 1920",
+      "expected": 57,
+      "enhanced": {
+        "count": 57,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize) WHERE p.awardYear < 1920 RETURN s.fullName, p.awardYear ORDER BY p.awardYear LIMIT 100"
+      },
+      "baseline": {
+        "count": 57,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize) WHERE p.awardYear < 1920 RETURN s.fullName"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 56,
+      "question": "Find scholars born in Europe who won Physics prizes",
+      "expected": 120,
+      "enhanced": {
+        "count": 100,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(:Country)-[:IS_COUNTRY_IN]->(con:Continent {name: 'Europe'}), (s)-[:WON]->(p:Prize {category: 'physics'}) RETURN s.fullName LIMIT 100"
+      },
+      "baseline": {
+        "count": 0,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(:Country)-[:IS_COUNTRY_IN]->(c:Continent {name: 'Europe'}) MATCH (s)-[:WON]->(p:Prize {category: 'Physics'}) RETURN s.fullName"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 57,
+      "question": "How many cities are in the database?",
+      "expected": 1,
+      "enhanced": {
+        "count": 1,
+        "error": null,
+        "success": true,
+        "query": "MATCH (c:City) RETURN count(c)"
+      },
+      "baseline": {
+        "count": 1,
+        "error": null,
+        "success": true,
+        "query": "MATCH (c:City) RETURN count(c)"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 58,
+      "question": "List all continents",
+      "expected": 6,
+      "enhanced": {
+        "count": 6,
+        "error": null,
+        "success": true,
+        "query": "MATCH (con:Continent) RETURN con.name ORDER BY con.name LIMIT 100"
+      },
+      "baseline": {
+        "count": 6,
+        "error": null,
+        "success": true,
+        "query": "MATCH (c:Continent) RETURN c.name"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 59,
+      "question": "Find scholars born in Berlin",
+      "expected": 8,
+      "enhanced": {
+        "count": 8,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City {name: 'Berlin'}) RETURN s.fullName LIMIT 100"
+      },
+      "baseline": {
+        "count": 8,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:BORN_IN]->(c:City) WHERE c.name = 'Berlin' RETURN s.fullName"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 60,
+      "question": "How many countries are represented?",
+      "expected": 1,
+      "enhanced": {
+        "count": 1,
+        "error": null,
+        "success": true,
+        "query": "MATCH (co:Country) RETURN count(co)"
+      },
+      "baseline": {
+        "count": 1,
+        "error": null,
+        "success": true,
+        "query": "MATCH (c:Country) RETURN count(c)"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 61,
+      "question": "List scholars born after 1950",
+      "expected": 30,
+      "enhanced": {
+        "count": 30,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar) WHERE s.birthDate IS NOT NULL AND s.birthDate >= '1950-01-01' RETURN s.knownName, s.birthDate ORDER BY s.birthDate LIMIT 30"
+      },
+      "baseline": {
+        "count": 0,
+        "error": "Catalog exception: function TOINTEGER does not exist.",
+        "success": false,
+        "query": "MATCH (s:Scholar) WHERE toInteger(s.birthDate) > 1950 RETURN s.name"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 62,
+      "question": "Find scholars born in the 1920s",
+      "expected": 99,
+      "enhanced": {
+        "count": 99,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar) WHERE s.birthDate >= '1920-01-01' AND s.birthDate < '1930-01-01' RETURN s.knownName, s.birthDate ORDER BY s.birthDate LIMIT 100"
+      },
+      "baseline": {
+        "count": 99,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar) WHERE substring(s.birthDate, 1, 4) >= '1920' AND substring(s.birthDate, 1, 4) <= '1929' RETURN s"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 63,
+      "question": "What was the motivation for Chemistry prizes in 2020?",
+      "expected": 1,
+      "enhanced": {
+        "count": 1,
+        "error": null,
+        "success": true,
+        "query": "MATCH (p:Prize {category: toLower('chemistry'), awardYear: 2020}) WHERE p.motivation IS NOT NULL RETURN p.motivation LIMIT 100"
+      },
+      "baseline": {
+        "count": 1,
+        "error": null,
+        "success": true,
+        "query": "MATCH (p:Prize) WHERE p.awardYear = 2020 AND p.category = 'chemistry' RETURN p.motivation"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 64,
+      "question": "List prize motivations for Physics in 2015",
+      "expected": 1,
+      "enhanced": {
+        "count": 1,
+        "error": null,
+        "success": true,
+        "query": "MATCH (p:Prize {category: 'physics', awardYear: 2015}) RETURN p.motivation ORDER BY p.motivation LIMIT 100"
+      },
+      "baseline": {
+        "count": 0,
+        "error": null,
+        "success": true,
+        "query": "MATCH (p:Prize) WHERE p.awardYear = 2015 AND p.category = 'Physics' RETURN p.motivation"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 65,
+      "question": "Find scholars with known birth dates who won prizes",
+      "expected": 20,
+      "enhanced": {
+        "count": 20,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize) WHERE s.birthDate IS NOT NULL RETURN s.knownName, s.birthDate, p.awardYear ORDER BY s.birthDate LIMIT 20"
+      },
+      "baseline": {
+        "count": 731,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar) WHERE s.birthDate IS NOT NULL MATCH (s)-[:WON]->(:Prize) RETURN s"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 66,
+      "question": "What are the earliest birth dates of Nobel laureates?",
+      "expected": 1,
+      "enhanced": {
+        "count": 1,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar) WHERE s.birthDate IS NOT NULL RETURN min(s.birthDate)"
+      },
+      "baseline": {
+        "count": 10,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar) WHERE s.birthDate IS NOT NULL WITH s.birthDate AS birthDate RETURN DISTINCT birthDate ORDER BY birthDate ASC LIMIT 10"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 67,
+      "question": "List recent laureates born after 1970",
+      "expected": 2,
+      "enhanced": {
+        "count": 2,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize) WHERE s.birthDate >= '1970-01-01' RETURN s.fullName, s.birthDate, p.awardYear ORDER BY p.awardYear DESC LIMIT 20"
+      },
+      "baseline": {
+        "count": 2,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize) WHERE s.birthDate > '1970-12-31' RETURN s.fullName"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 68,
+      "question": "Find all prize motivations containing 'quantum'",
+      "expected": 9,
+      "enhanced": {
+        "count": 0,
+        "error": "litellm.RateLimitError: litellm.RateLimitError: VertexAIException - {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, p",
+        "success": false,
+        "query": null
+      },
+      "baseline": {
+        "count": 9,
+        "error": null,
+        "success": true,
+        "query": "MATCH (p:Prize) WHERE p.motivation CONTAINS 'quantum' RETURN p.motivation"
+      },
+      "winner": "baseline"
+    },
+    {
+      "index": 69,
+      "question": "Show scholars' full names and birth dates",
+      "expected": 25,
+      "enhanced": {
+        "count": 25,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar) WHERE s.birthDate IS NOT NULL AND s.fullName IS NOT NULL RETURN s.fullName, s.birthDate ORDER BY s.birthDate DESC LIMIT 25"
+      },
+      "baseline": {
+        "count": 726,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar) RETURN s.fullName, s.birthDate"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 70,
+      "question": "List scholars born in each decade of the 20th century",
+      "expected": 1,
+      "enhanced": {
+        "count": 0,
+        "error": "Binder exception: decade has data type STRING but (NODE,REL,STRUCT,ANY) was expected.",
+        "success": false,
+        "query": "MATCH (s:Scholar) WHERE s.birthDate >= '1900-01-01' AND s.birthDate < '2000-01-01' WITH substring(s.birthDate, 0, 3) + '0s' as decade RETURN decade.knownName, count(*) ORDER BY decade"
+      },
+      "baseline": {
+        "count": 0,
+        "error": "Catalog exception: function TOINTEGER does not exist.",
+        "success": false,
+        "query": "MATCH (s:Scholar) WHERE s.birthDate IS NOT NULL AND s.birthDate >= '1900-01-01' AND s.birthDate < '2000-01-01' WITH s, floor(toInteger(substring(s.birthDate, 0, 4)) / 10) * 10 AS decade RETURN decade, collect(s.name) AS scholars ORDER BY decade"
+      },
+      "winner": "none"
+    },
+    {
+      "index": 71,
+      "question": "Who won Chemistry prizes after 2000 before 2020?",
+      "expected": 49,
+      "enhanced": {
+        "count": 49,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize {category: 'chemistry'}) WHERE p.awardYear > 2000 AND p.awardYear < 2020 RETURN s.fullName, p.awardYear ORDER BY p.awardYear LIMIT 100"
+      },
+      "baseline": {
+        "count": 0,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize) WHERE p.category = 'Chemistry' AND p.awardYear >= 2000 AND p.awardYear < 2020 RETURN s.fullName"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 72,
+      "question": "Find Chemistry winners between 2000 and 2020",
+      "expected": 54,
+      "enhanced": {
+        "count": 54,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize {category: 'chemistry'}) WHERE p.awardYear >= 2000 AND p.awardYear <= 2020 RETURN s.fullName, p.awardYear ORDER BY p.awardYear LIMIT 100"
+      },
+      "baseline": {
+        "count": 0,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize) WHERE p.category = 'Chemistry' AND p.awardYear >= 2000 AND p.awardYear <= 2020 RETURN s.fullName"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 73,
+      "question": "List all female scholars",
+      "expected": 25,
+      "enhanced": {
+        "count": 25,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar {gender: 'female'}) RETURN s.fullName LIMIT 100"
+      },
+      "baseline": {
+        "count": 25,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar) WHERE s.gender = 'female' RETURN s.fullName"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 74,
+      "question": "How many women won Nobel prizes?",
+      "expected": 1,
+      "enhanced": {
+        "count": 1,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar {gender: 'female'})-[:WON]->(p:Prize) RETURN count(DISTINCT s)"
+      },
+      "baseline": {
+        "count": 1,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(:Prize) WHERE s.gender = 'female' RETURN count(s) AS femaleNobelWinners"
+      },
+      "winner": "tie"
+    },
+    {
+      "index": 75,
+      "question": "Find male scholars who won Physics prizes",
+      "expected": 221,
+      "enhanced": {
+        "count": 100,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar {gender: 'male'})-[:WON]->(p:Prize {category: 'physics'}) RETURN s.knownName LIMIT 100"
+      },
+      "baseline": {
+        "count": 0,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar {gender: 'Male'})-[:WON]->(p:Prize {category: 'Physics'}) RETURN s"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 76,
+      "question": "Where are Chemistry prize winners from?",
+      "expected": 38,
+      "enhanced": {
+        "count": 38,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize {category: 'chemistry'}), (s)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(co:Country) RETURN DISTINCT co.name, count(s) as scholar_count ORDER BY scholar_count DESC"
+      },
+      "baseline": {
+        "count": 0,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize) WHERE p.category = 'Chemistry' MATCH (s)-[:BORN_IN]->(c:City)-[:IS_CITY_IN]->(cy:Country) RETURN DISTINCT cy.name"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 77,
+      "question": "Which countries do Physics winners come from?",
+      "expected": 20,
+      "enhanced": {
+        "count": 20,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize {category: 'physics'}), (s)-[:BORN_IN]->(:City)-[:IS_CITY_IN]->(co:Country) RETURN co.name, count(DISTINCT s) as total ORDER BY total DESC LIMIT 20"
+      },
+      "baseline": {
+        "count": 0,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize) WHERE p.category = 'Physics' MATCH (s)-[:BORN_IN]->(c:City)-[:IS_CITY_IN]->(country:Country) RETURN DISTINCT country.name"
+      },
+      "winner": "enhanced"
+    },
+    {
+      "index": 78,
+      "question": "Which scholars won prizes in Physics and were affiliated with University of Cambridge?",
+      "expected": 8,
+      "enhanced": {
+        "count": 8,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize), (s)-[:AFFILIATED_WITH]->(i:Institution) WHERE toLower(p.category) = 'physics' AND toLower(i.name) CONTAINS 'cambridge' RETURN DISTINCT s.fullName LIMIT 100"
+      },
+      "baseline": {
+        "count": 0,
+        "error": null,
+        "success": true,
+        "query": "MATCH (s:Scholar)-[:WON]->(p:Prize) WHERE p.category = 'Physics' MATCH (s)-[:AFFILIATED_WITH]->(i:Institution) WHERE i.name = 'University of Cambridge' RETURN DISTINCT s.fullName"
+      },
+      "winner": "enhanced"
+    }
+  ]
+}

@@ -38,16 +38,59 @@ def _(KuzuDatabaseManager, mo, run_graph_rag, text_ui):
     question = text_ui.value
 
     with mo.status.spinner(title="Generating answer...") as _spinner:
-        result = run_graph_rag([question], db_manager)[0]
+        result = run_graph_rag([question], db_manager, True)[0]
+        result_ori = run_graph_rag([question], db_manager, False)[0]
+    # result may be empty or missing keys if the pipeline failed (e.g., LLM error,
+    # DB query returned no rows, or an earlier step raised and returned an empty dict).
+    # Guard against that to avoid KeyError when accessing result['query'].
+    if not result or not isinstance(result, dict):
+        mo.md("**No result produced by pipeline.** Check the server logs for errors (LLM auth, provider, or DB query failures).")
+        # return "No answer available", "No query generated"
 
-    query = result['query']
-    answer = result['answer'].response
-    return answer, query
+    query = result.get('query')
+    answer_obj = result.get('answer')
+
+    query_ori = result_ori.get('query')
+    answer_obj_ori = result_ori.get('answer')
+
+    # answer may be a DSPy output object with .response or a plain string/dict
+    if hasattr(answer_obj, 'response'):
+        answer_text = answer_obj.response
+    elif isinstance(answer_obj, dict) and 'response' in answer_obj:
+        answer_text = answer_obj['response']
+    elif isinstance(answer_obj, str):
+        answer_text = answer_obj
+    else:
+        answer_text = str(answer_obj)
+
+
+
+    # answer may be a DSPy output object with .response or a plain string/dict
+    if hasattr(answer_obj_ori, 'response'):
+        answer_ori = answer_obj_ori.response
+    elif isinstance(answer_obj_ori, dict) and 'response' in answer_obj_ori:
+        answer_ori = answer_obj_ori['response']
+    elif isinstance(answer_obj_ori, str):
+        answer_ori = answer_obj_ori
+    else:
+        answer_ori = str(answer_obj_ori)
+
+    return answer_ori, answer_text, query, query_ori
 
 
 @app.cell
-def _(answer, mo, query):
-    mo.hstack([mo.md(f"""### Query\n```{query}```"""), mo.md(f"""### Answer\n{answer}""")])
+def _(answer_ori, answer_text, mo, query, query_ori):
+    mo.vstack([
+        mo.hstack([
+            mo.md(f"""### Query\n```{query}```"""),
+            mo.md(f"""### Answer\n{answer_text}""")
+        ]),
+        
+        mo.hstack([
+            mo.md(f"""### Query Original\n```{query_ori}```"""),
+            mo.md(f"""### Answer Original\n{answer_ori}""")
+        ])
+    ])    
     return
 
 
@@ -113,14 +156,17 @@ def _(GraphSchema, Query, dspy):
 
 
 @app.cell
-def _(BAMLAdapter, OPENROUTER_API_KEY, dspy):
-    # Using OpenRouter. Switch to another LLM provider as needed
+def _(GEMINI_API_KEY, dspy):
+    # Using Google Gemini API directly (no OpenRouter)
+    # Note: Not using BAMLAdapter to avoid "max depth exceeded" error
+    # with deeply nested GraphSchema (Edge -> Node -> Property)
+    # Increased max_tokens to avoid truncation with large exemplar store
     lm = dspy.LM(
-        model="openrouter/google/gemini-2.0-flash-001",
-        api_base="https://openrouter.ai/api/v1",
-        api_key=OPENROUTER_API_KEY,
+        model="gemini/gemini-2.5-flash-lite",
+        api_key=GEMINI_API_KEY,
+        max_tokens=6000
     )
-    dspy.configure(lm=lm, adapter=BAMLAdapter())
+    dspy.configure(lm=lm)  # NO BAMLAdapter!
     return
 
 
@@ -185,16 +231,17 @@ def _(BaseModel, Field):
         properties: list[Property] | None
 
 
-    class Edge(BaseModel):
+    # Simplified Edge to avoid deep nesting with Gemini API
+    class SimpleEdge(BaseModel):
         label: str = Field(description="Relationship label")
-        from_: Node = Field(alias="from", description="Source node label")
-        to: Node = Field(alias="from", description="Target node label")
+        from_label: str = Field(alias="from", description="Source node label")
+        to_label: str = Field(alias="to", description="Target node label")
         properties: list[Property] | None
 
 
     class GraphSchema(BaseModel):
         nodes: list[Node]
-        edges: list[Edge]
+        edges: list[SimpleEdge]
     return GraphSchema, Query
 
 
@@ -207,33 +254,68 @@ def _(
     Query,
     Text2Cypher,
     dspy,
+    text2cypher_enhanced,
 ):
     class GraphRAG(dspy.Module):
         """
         DSPy custom module that applies Text2Cypher to generate a query and run it
         on the Kuzu database, to generate a natural language response.
+
+        Enhanced with:
+        - Dynamic exemplar selection
+        - Self-refinement loop with validation
+        - Rule-based post-processing
         """
 
-        def __init__(self):
+        def __init__(self, db_manager: KuzuDatabaseManager, use_enhanced: bool = True):
             self.prune = dspy.Predict(PruneSchema)
-            self.text2cypher = dspy.ChainOfThought(Text2Cypher)
             self.generate_answer = dspy.ChainOfThought(AnswerQuestion)
+            self.use_enhanced = use_enhanced
 
-        def get_cypher_query(self, question: str, input_schema: str) -> Query:
+            if use_enhanced:
+                # Use enhanced Text2Cypher with validation and refinement
+                self.enhanced_text2cypher = text2cypher_enhanced.create_text2cypher_pipeline(
+                    db_manager.conn,
+                    exemplars_path="data/exemplars_comprehensive.json"
+                )
+            else:
+                # Fallback to basic DSPy Text2Cypher
+                self.text2cypher = dspy.ChainOfThought(Text2Cypher)
+
+        def get_cypher_query(self, question: str, input_schema: str) -> tuple[Query, dict]:
+            """
+            Generate Cypher query with optional enhancement.
+
+            Returns: (query, metadata) where metadata contains performance stats
+            """
             prune_result = self.prune(question=question, input_schema=input_schema)
             schema = prune_result.pruned_schema
-            text2cypher_result = self.text2cypher(question=question, input_schema=schema)
-            cypher_query = text2cypher_result.query
-            return cypher_query
+
+            if self.use_enhanced:
+                # Use enhanced pipeline with self-refinement
+                query_str, metadata = self.enhanced_text2cypher.generate(
+                    question=question,
+                    schema=schema.model_dump() if hasattr(schema, 'model_dump') else schema,
+                    return_metadata=True
+                )
+                # Wrap in Query object for compatibility
+                query_obj = Query(query=query_str)
+                return query_obj, metadata
+            else:
+                # Use basic DSPy pipeline
+                text2cypher_result = self.text2cypher(question=question, input_schema=schema)
+                return text2cypher_result.query, {}
 
         def run_query(
             self, db_manager: KuzuDatabaseManager, question: str, input_schema: str
-        ) -> tuple[str, list[Any] | None]:
+        ) -> tuple[str, list[Any] | None, dict]:
             """
             Run a query synchronously on the database.
+            Returns: (query, results, metadata)
             """
-            result = self.get_cypher_query(question=question, input_schema=input_schema)
-            query = result.query
+            query_obj, metadata = self.get_cypher_query(question=question, input_schema=input_schema)
+            query = query_obj.query if hasattr(query_obj, 'query') else str(query_obj)
+
             try:
                 # Run the query on the database
                 result = db_manager.conn.execute(query)
@@ -241,10 +323,11 @@ def _(
             except RuntimeError as e:
                 print(f"Error running query: {e}")
                 results = None
-            return query, results
+            return query, results, metadata
 
         def forward(self, db_manager: KuzuDatabaseManager, question: str, input_schema: str):
-            final_query, final_context = self.run_query(db_manager, question, input_schema)
+            final_query, final_context, metadata = self.run_query(db_manager, question, input_schema)
+
             if final_context is None:
                 print("Empty results obtained from the graph database. Please retry with a different question.")
                 return {}
@@ -256,11 +339,13 @@ def _(
                     "question": question,
                     "query": final_query,
                     "answer": answer,
+                    "metadata": metadata  # Include generation metadata
                 }
                 return response
 
         async def aforward(self, db_manager: KuzuDatabaseManager, question: str, input_schema: str):
-            final_query, final_context = self.run_query(db_manager, question, input_schema)
+            final_query, final_context, metadata = self.run_query(db_manager, question, input_schema)
+
             if final_context is None:
                 print("Empty results obtained from the graph database. Please retry with a different question.")
                 return {}
@@ -272,13 +357,22 @@ def _(
                     "question": question,
                     "query": final_query,
                     "answer": answer,
+                    "metadata": metadata  # Include generation metadata
                 }
                 return response
 
 
-    def run_graph_rag(questions: list[str], db_manager: KuzuDatabaseManager) -> list[Any]:
+    def run_graph_rag(questions: list[str], db_manager: KuzuDatabaseManager, use_enhanced: bool = True) -> list[Any]:
+        """
+        Run Graph RAG pipeline with optional enhanced Text2Cypher.
+
+        Args:
+            questions: List of questions to answer
+            db_manager: Kuzu database manager
+            use_enhanced: If True, use enhanced Text2Cypher with validation (default: True)
+        """
         schema = str(db_manager.get_schema_dict)
-        rag = GraphRAG()
+        rag = GraphRAG(db_manager, use_enhanced=use_enhanced)
         # Run pipeline
         results = []
         for question in questions:
@@ -304,21 +398,23 @@ def _():
     import dspy
     import kuzu
     from dotenv import load_dotenv
-    from dspy.adapters.baml_adapter import BAMLAdapter
     from pydantic import BaseModel, Field
 
-    load_dotenv()
+    import text2cypher_enhanced
+
+    load_dotenv('project.env')
 
     OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
+    GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
     return (
         Any,
-        BAMLAdapter,
         BaseModel,
         Field,
-        OPENROUTER_API_KEY,
+        GEMINI_API_KEY,
         dspy,
         kuzu,
         mo,
+        text2cypher_enhanced,
     )
 
 
