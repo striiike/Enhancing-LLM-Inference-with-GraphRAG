@@ -1,0 +1,26 @@
+{
+  "test_config": {
+    "unique_queries": 20,
+    "total_requests": 60,
+    "cache_size": 50,
+    "simulated_llm_time": "50ms"
+  },
+  "without_cache": {
+    "total_time_sec": 3.018,
+    "avg_time_ms": 50.3,
+    "llm_calls": 60
+  },
+  "with_cache": {
+    "total_time_sec": 1.008,
+    "avg_time_ms": 16.8,
+    "cache_hits": 40,
+    "cache_misses": 20,
+    "hit_rate_percent": 66.7,
+    "llm_calls": 20
+  },
+  "improvement": {
+    "speedup_percent": 66.6,
+    "time_saved_sec": 2.01,
+    "llm_calls_saved": 40
+  }
+}

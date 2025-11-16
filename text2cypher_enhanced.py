@@ -14,6 +14,7 @@ Key improvements:
 
 import json
 import re
+import time
 from difflib import SequenceMatcher
 from typing import List, Dict, Tuple, Optional, Any
 from pathlib import Path
@@ -435,7 +436,8 @@ class Text2CypherEnhanced:
         self,
         question: str,
         schema: dict,
-        return_metadata: bool = False
+        return_metadata: bool = False,
+        enable_timing: bool = False
     ) -> str | Tuple[str, Dict[str, Any]]:
         """
         Generate Cypher query with self-refinement.
@@ -444,6 +446,7 @@ class Text2CypherEnhanced:
             question: Natural language question
             schema: Pruned graph schema
             return_metadata: If True, return (query, metadata) with stats
+            enable_timing: If True, record detailed timing for each stage
         
         Returns:
             Valid Cypher query string (or tuple if return_metadata=True)
@@ -455,14 +458,22 @@ class Text2CypherEnhanced:
             'exemplars_used': 0
         }
         
+        # Initialize timing dict if enabled
+        if enable_timing:
+            timings = {}
+        
         # Step 1: Retrieve relevant exemplars
+        t_start = time.time() if enable_timing else None
         exemplars = self.exemplar_store.select_exemplars(question, k=self.exemplar_count)
+        if enable_timing:
+            timings['exemplar_retrieval'] = time.time() - t_start
         metadata['exemplars_used'] = len(exemplars)
         
         # Format exemplars for prompt
         examples_text = self._format_exemplars(exemplars)
         
         # Step 2: Generate initial query
+        t_start = time.time() if enable_timing else None
         generator = dspy.ChainOfThought(self.GenerateQuery)
         schema_text = self._format_schema(schema)
         
@@ -471,15 +482,21 @@ class Text2CypherEnhanced:
             schema=schema_text,
             examples=examples_text
         )
+        if enable_timing:
+            timings['query_generation'] = time.time() - t_start
         
         # Clean markdown code fences that some LLMs add
         candidate_query = strip_markdown_code_fence(result.query)
         
         # Step 3: Validate
+        t_start = time.time() if enable_timing else None
         is_valid, error_type, error_msg = self.validator.validate(candidate_query)
+        if enable_timing:
+            timings['initial_validation'] = time.time() - t_start
         metadata['initial_valid'] = is_valid
         
         # Step 4: Self-refinement loop
+        t_start = time.time() if enable_timing else None
         attempts = 0
         while not is_valid and attempts < self.max_refinement_attempts:
             metadata['error_types'].append(error_type)
@@ -491,15 +508,28 @@ class Text2CypherEnhanced:
             )
             is_valid, error_type, error_msg = self.validator.validate(candidate_query)
             attempts += 1
+        if enable_timing:
+            timings['refinement'] = time.time() - t_start
         
         metadata['refinement_attempts'] = attempts
         
         # Step 5: Post-processing (even if valid, apply cleanup rules)
+        t_start = time.time() if enable_timing else None
         final_query = self.post_processor.process(candidate_query, schema)
+        if enable_timing:
+            timings['post_processing'] = time.time() - t_start
         
         # Final validation after post-processing
+        t_start = time.time() if enable_timing else None
         is_valid, _, _ = self.validator.validate(final_query)
+        if enable_timing:
+            timings['final_validation'] = time.time() - t_start
         metadata['final_valid'] = is_valid
+        
+        # Add timing data to metadata if enabled
+        if enable_timing:
+            metadata['timings'] = timings
+            metadata['total_time'] = sum(timings.values())
         
         if return_metadata:
             return final_query, metadata

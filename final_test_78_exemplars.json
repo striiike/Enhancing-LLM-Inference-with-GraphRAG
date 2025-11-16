@@ -8,22 +8,22 @@
   "summary": {
     "total_exemplars": 78,
     "schema_prune_failures": 0,
-    "valid_comparisons": 76,
+    "valid_comparisons": 77,
     "enhanced": {
-      "wins": 34,
-      "win_rate": "44.7%",
-      "total_results": 3445,
-      "errors": 4,
-      "error_rate": "5.1%"
+      "wins": 35,
+      "win_rate": "44.9%",
+      "total_results": 3466,
+      "errors": 2,
+      "error_rate": "2.6%"
     },
     "baseline": {
-      "wins": 5,
-      "win_rate": "6.6%",
+      "wins": 4,
+      "win_rate": "5.1%",
       "total_results": 4921,
-      "errors": 6,
-      "error_rate": "7.7%"
+      "errors": 5,
+      "error_rate": "6.4%"
     },
-    "ties": 37,
+    "ties": 38,
     "tie_rate": "48.7%"
   },
   "details": [
@@ -428,18 +428,18 @@
       "question": "List all Economics prizes awarded after 2010",
       "expected": 12,
       "enhanced": {
-        "count": 0,
-        "error": "litellm.RateLimitError: litellm.RateLimitError: VertexAIException - {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, p",
-        "success": false,
-        "query": null
+        "count": 12,
+        "error": null,
+        "success": true,
+        "query": "MATCH (p:Prize {category: 'economics'}) WHERE p.awardYear > 2010 RETURN p.awardYear ORDER BY p.awardYear LIMIT 100"
       },
       "baseline": {
         "count": 0,
-        "error": "1 validation error for Query\n  Input should be a valid dictionary or instance of Query [type=model_type, input_value=\"MATCH (p:Prize) WHERE p....ardYe",
-        "success": false,
-        "query": null
+        "error": null,
+        "success": true,
+        "query": "MATCH (p:Prize) WHERE p.category = 'Economics' AND p.awardYear > 2010 RETURN p"
       },
-      "winner": "none"
+      "winner": "enhanced"
     },
     {
       "index": 24,
@@ -1238,10 +1238,10 @@
       "question": "Find all prize motivations containing 'quantum'",
       "expected": 9,
       "enhanced": {
-        "count": 0,
-        "error": "litellm.RateLimitError: litellm.RateLimitError: VertexAIException - {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, p",
-        "success": false,
-        "query": null
+        "count": 9,
+        "error": null,
+        "success": true,
+        "query": "MATCH (p:Prize) WHERE p.motivation IS NOT NULL AND toLower(p.motivation) CONTAINS 'quantum' RETURN p.category, p.awardYear, p.motivation LIMIT 100"
       },
       "baseline": {
         "count": 9,
@@ -1249,7 +1249,7 @@
         "success": true,
         "query": "MATCH (p:Prize) WHERE p.motivation CONTAINS 'quantum' RETURN p.motivation"
       },
-      "winner": "baseline"
+      "winner": "tie"
     },
     {
       "index": 69,

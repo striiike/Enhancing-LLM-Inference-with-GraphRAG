@@ -1,0 +1,102 @@
+[
+  {
+    "question": "Who won the Nobel Prize in Physics in 2020?",
+    "category": "popular",
+    "expected_keywords": ["Physics", "2020", "Scholar", "Prize"]
+  },
+  {
+    "question": "List all Chemistry laureates",
+    "category": "popular",
+    "expected_keywords": ["Chemistry", "laureates"]
+  },
+  {
+    "question": "Find scholars from MIT",
+    "category": "popular",
+    "expected_keywords": ["MIT", "Scholar", "AFFILIATED_WITH"]
+  },
+  {
+    "question": "Count prizes in Physics",
+    "category": "aggregation",
+    "expected_keywords": ["COUNT", "Physics", "Prize"]
+  },
+  {
+    "question": "Who won Nobel Prize in Chemistry in 2020?",
+    "category": "popular",
+    "expected_keywords": ["Chemistry", "2020"]
+  },
+  {
+    "question": "Show scholars affiliated with Harvard",
+    "category": "popular",
+    "expected_keywords": ["Harvard", "Scholar", "AFFILIATED_WITH"]
+  },
+  {
+    "question": "List all Peace Prize winners",
+    "category": "popular",
+    "expected_keywords": ["Peace", "Prize"]
+  },
+  {
+    "question": "Find laureates from University of Cambridge",
+    "category": "popular",
+    "expected_keywords": ["Cambridge", "Scholar"]
+  },
+  {
+    "question": "Who won Nobel Prize in Literature in 2019?",
+    "category": "specific",
+    "expected_keywords": ["Literature", "2019"]
+  },
+  {
+    "question": "Count all Economics prizes",
+    "category": "aggregation",
+    "expected_keywords": ["COUNT", "Economics"]
+  },
+  {
+    "question": "Show all prizes won by scholars from Stanford",
+    "category": "complex",
+    "expected_keywords": ["Stanford", "Scholar", "Prize"]
+  },
+  {
+    "question": "List scholars who won prizes in multiple categories",
+    "category": "complex",
+    "expected_keywords": ["Scholar", "Prize", "COUNT"]
+  },
+  {
+    "question": "Find all prizes awarded in 2021",
+    "category": "temporal",
+    "expected_keywords": ["2021", "Prize"]
+  },
+  {
+    "question": "Which institutions have the most Nobel laureates?",
+    "category": "complex",
+    "expected_keywords": ["Institution", "COUNT", "Scholar"]
+  },
+  {
+    "question": "Show me all Physics prizes from 2015 to 2020",
+    "category": "temporal",
+    "expected_keywords": ["Physics", "2015", "2020"]
+  },
+  {
+    "question": "Who are the youngest Nobel Prize winners?",
+    "category": "ranking",
+    "expected_keywords": ["Scholar", "age", "ORDER BY"]
+  },
+  {
+    "question": "List all prizes in Medicine",
+    "category": "popular",
+    "expected_keywords": ["Medicine", "Prize"]
+  },
+  {
+    "question": "Find scholars affiliated with Oxford University",
+    "category": "popular",
+    "expected_keywords": ["Oxford", "Scholar", "AFFILIATED_WITH"]
+  },
+  {
+    "question": "Count total number of Nobel Prizes",
+    "category": "aggregation",
+    "expected_keywords": ["COUNT", "Prize"]
+  },
+  {
+    "question": "Show prizes won in the last 5 years",
+    "category": "temporal",
+    "expected_keywords": ["Prize", "year"]
+  }
+]

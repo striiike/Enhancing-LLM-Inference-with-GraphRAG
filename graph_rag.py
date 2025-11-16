@@ -79,8 +79,13 @@ def _(KuzuDatabaseManager, mo, run_graph_rag, text_ui):
 
 
 @app.cell
-def _(answer_ori, answer_text, mo, query, query_ori):
+def _(answer_ori, answer_text, mo, query, query_ori, result):
+    # Show cache status
+    is_cached = result.get('metadata', {}).get('cached', False)
+    cache_status = "✅ CACHED" if is_cached else "🔄 GENERATED"
+    
     mo.vstack([
+        mo.md(f"**Cache Status:** {cache_status}"),
         mo.hstack([
             mo.md(f"""### Query\n```{query}```"""),
             mo.md(f"""### Answer\n{answer_text}""")
@@ -92,7 +97,6 @@ def _(answer_ori, answer_text, mo, query, query_ori):
         ])
     ])    
     return
-
 
 @app.cell
 def _(GraphSchema, Query, dspy):
@@ -254,6 +258,7 @@ def _(
     Query,
     Text2Cypher,
     dspy,
+    get_global_cache,
     text2cypher_enhanced,
 ):
     class GraphRAG(dspy.Module):
@@ -372,12 +377,57 @@ def _(
             use_enhanced: If True, use enhanced Text2Cypher with validation (default: True)
         """
         schema = str(db_manager.get_schema_dict)
+        
+        # Initialize cache (max_size=256 queries)
+        cache = get_global_cache(max_size=256)
+        
         rag = GraphRAG(db_manager, use_enhanced=use_enhanced)
-        # Run pipeline
+        
+        # Run pipeline with cache
         results = []
         for question in questions:
+            # Check cache first
+            cached_query = cache.get(question, schema)
+            
+            if cached_query:
+                # Use cached Cypher query (fast path)
+                try:
+                    # Execute cached query directly
+                    result = db_manager.conn.execute(cached_query)
+                    context = [item for row in result for item in row]
+                    
+                    if context and len(context) > 0:
+                        # Generate answer using cached query
+                        answer = rag.generate_answer(
+                            question=question,
+                            cypher_query=cached_query,
+                            context=str(context)
+                        )
+                        response = {
+                            "question": question,
+                            "query": cached_query,
+                            "answer": answer,
+                            "metadata": {"cached": True}
+                        }
+                        results.append(response)
+                        continue
+                except Exception as e:
+                    # If cached query fails, fall through to regenerate
+                    print(f"Cached query failed: {e}")
+                    pass
+            
+            # Cache miss or cached query failed - generate new query
             response = rag(db_manager=db_manager, question=question, input_schema=schema)
+            
+            # Cache the generated query if successful
+            if response and isinstance(response, dict) and 'query' in response:
+                cache.put(question, response['query'], schema)
+                if 'metadata' not in response:
+                    response['metadata'] = {}
+                response['metadata']['cached'] = False
+            
             results.append(response)
+        
         return results
 
     return (run_graph_rag,)
@@ -399,6 +449,7 @@ def _():
     import kuzu
     from dotenv import load_dotenv
     from pydantic import BaseModel, Field
+    from cache import get_global_cache
 
     import text2cypher_enhanced
 
@@ -412,6 +463,7 @@ def _():
         Field,
         GEMINI_API_KEY,
         dspy,
+        get_global_cache,
         kuzu,
         mo,
         text2cypher_enhanced,
